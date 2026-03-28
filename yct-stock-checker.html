@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YCT Stock Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--red:#c0392b;--red-dark:#922b21;--red-light:#e74c3c;--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#333;--text:#f0f0f0;--dim:#888;--green:#27ae60;--gbg:#0d2b1a;--orange:#e67e22;--blue:#3498db;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+/* Header */
+.hdr{background:var(--bg2);border-bottom:2px solid var(--red);padding:13px 24px;display:flex;align-items:center;gap:15px;position:sticky;top:0;z-index:100;}
+.logo{width:38px;height:38px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;font-family:'IBM Plex Mono',monospace;flex-shrink:0;}
+.ht{font-size:17px;font-weight:700;}.hs{font-size:11px;color:var(--dim);font-family:'IBM Plex Mono',monospace;}
+.hpills{margin-left:auto;display:none;gap:10px;align-items:center;}
+.pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 11px;font-size:11px;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}.dg{background:var(--green)}.dr2{background:var(--red-light)}.do{background:var(--orange)}.db{background:var(--blue)}
+/* Layout */
+.wrap{max-width:1400px;margin:0 auto;padding:22px;display:grid;grid-template-columns:340px 1fr;gap:22px;}
+.lp{display:flex;flex-direction:column;gap:13px;}
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.ch{background:var(--bg3);padding:10px 15px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:7px;}
+.cb{padding:15px;}
+/* Inputs */
+.lbl{font-size:11px;color:var(--dim);margin-bottom:4px;display:block;}
+.mt{margin-top:10px;}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:var(--red);}.inp::placeholder{color:#555;}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.tab{padding:3px 10px;border-radius:13px;background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-size:11px;cursor:pointer;transition:all .15s;}
+.tab:hover{border-color:var(--red);color:var(--text);}.tab.on{background:var(--red);border-color:var(--red);color:#fff;}
+/* Buttons */
+.btn{width:100%;padding:9px 13px;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;}
+.bp{background:var(--red);color:#fff;}.bp:hover{background:var(--red-light);}
+.bs{background:var(--bg3);border:1px solid var(--border);color:var(--text);}.bs:hover:not(:disabled){border-color:var(--red);}
+.bb{background:#0d1a2b;border:1px solid var(--blue);color:var(--blue);}.bb:hover:not(:disabled){background:#1a2b3b;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+/* Info boxes */
+.ib{margin-top:8px;padding:8px 11px;border-radius:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;display:none;white-space:pre-wrap;word-break:break-all;line-height:1.5;}
+.ib.ok{background:var(--gbg);color:var(--green);border:1px solid #1a5c35;}
+.ib.er{background:#2b0d0d;color:#e74c3c;border:1px solid #5c1a1a;}
+.ib.ld{background:var(--bg3);color:var(--dim);border:1px solid var(--border);}
+.ib.nf{background:#0d1a2b;color:var(--blue);border:1px solid #1a3a5c;}
+/* Upload */
+.upz{border:2px dashed var(--border);border-radius:9px;padding:20px 15px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.upz:hover,.upz.dov{border-color:var(--red);background:rgba(192,57,43,.05);}
+.upz input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.uico{font-size:26px;margin-bottom:5px;}.utx{font-size:13px;font-weight:600;margin-bottom:2px;}.usb{font-size:11px;color:var(--dim);}
+/* Queue */
+.q{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;margin-top:9px;}
+.qi{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:7px 9px;display:flex;align-items:center;gap:8px;}
+.qth{width:42px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);}
+.qn{flex:1;min-width:0;}.qfn{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qser{font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;margin-top:2px;}
+.qst{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.sw{background:var(--bg);color:#666;border:1px solid var(--border);}
+.sr{background:#1a1a2b;color:#7986cb;border:1px solid #3949ab;}
+.sd{background:var(--gbg);color:var(--green);border:1px solid #1a5c35;}
+.se{background:#2b0d0d;color:#e74c3c;border:1px solid #5c1a1a;}
+/* Progress */
+.pw{background:var(--bg3);border-radius:4px;height:4px;overflow:hidden;margin-top:9px;display:none;}
+.pb{height:100%;background:linear-gradient(90deg,var(--red-dark),var(--red-light));border-radius:4px;transition:width .25s ease;}
+/* Run & Write buttons */
+.btnrun{background:linear-gradient(135deg,var(--red-dark),var(--red-light));color:#fff;font-size:15px;font-weight:700;padding:13px;border:none;border-radius:10px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s;box-shadow:0 4px 18px rgba(192,57,43,.3);}
+.btnrun:hover:not(:disabled){box-shadow:0 6px 26px rgba(192,57,43,.5);transform:translateY(-1px);}
+.btnrun:disabled{background:#2d2d2d;color:#555;cursor:not-allowed;box-shadow:none;transform:none;}
+.btnwr{background:linear-gradient(135deg,#0d3b1f,#1a5c35);color:#2ecc71;font-size:14px;font-weight:700;padding:12px;border:1px solid #1a5c35;border-radius:10px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s;box-shadow:0 4px 14px rgba(39,174,96,.15);margin-top:8px;}
+.btnwr:hover:not(:disabled){box-shadow:0 6px 22px rgba(39,174,96,.3);transform:translateY(-1px);}
+.btnwr:disabled{background:#1a2b1a;color:#3a5c3a;cursor:not-allowed;box-shadow:none;transform:none;border-color:#2a3a2a;}
+/* Right panel */
+.rp{display:flex;flex-direction:column;gap:13px;}
+.sumbar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.si{text-align:center;}.sc{font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;line-height:1;}.sl{font-size:10px;color:var(--dim);margin-top:2px;}
+.dv1{width:1px;background:var(--border);align-self:stretch;}
+.ftbs{display:flex;gap:6px;flex-wrap:wrap;}
+.ft{padding:5px 13px;border-radius:17px;font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--bg3);color:var(--dim);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.ft.on{border-color:var(--red);color:var(--text);background:rgba(192,57,43,.15);}
+.ft .b{background:var(--bg);padding:1px 5px;border-radius:7px;font-size:10px;}.ft.on .b{background:var(--red);color:#fff;}
+/* Result grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:10px;}
+.rc{background:var(--bg2);border:1px solid var(--border);border-radius:11px;overflow:hidden;transition:all .2s;animation:sf .3s ease both;}
+@keyframes sf{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.rc:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 7px 22px rgba(0,0,0,.4);}
+.rc.ci{border-left:3px solid var(--green);}.rc.cs{border-left:3px solid var(--red-light);}
+.rc.cn{border-left:3px solid var(--orange);}.rc.ce{border-left:3px solid #555;}
+.rim{position:relative;height:128px;overflow:hidden;background:#111;}
+.rim img{width:100%;height:100%;object-fit:cover;}
+.rbadge{position:absolute;top:8px;right:8px;padding:3px 10px;border-radius:17px;font-size:11px;font-weight:700;backdrop-filter:blur(8px);}
+.rbi{background:rgba(39,174,96,.9);color:#fff;}.rbs{background:rgba(231,76,60,.9);color:#fff;}
+.rbn{background:rgba(230,126,34,.9);color:#fff;}.rbe{background:rgba(80,80,80,.9);color:#ccc;}
+.wm{position:absolute;bottom:8px;right:8px;width:20px;height:20px;background:rgba(52,152,219,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.rbody{padding:12px;}
+.rfn{font-size:10px;color:var(--dim);margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
+.rser{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;margin-bottom:2px;}
+.rmod{font-size:11px;color:var(--dim);margin-bottom:7px;}
+.rdet{border-top:1px solid var(--border);padding-top:7px;display:flex;flex-direction:column;gap:3px;}
+.dr{display:flex;justify-content:space-between;align-items:center;}
+.dl{font-size:10px;color:var(--dim);}.dval{font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:500;}
+.dval.r{color:var(--red-light);}.dval.g{color:var(--green);}.dval.o{color:var(--orange);}.dval.b{color:var(--blue);}
+/* Alert */
+.alrt{padding:13px 17px;border-radius:10px;display:flex;align-items:flex-start;gap:11px;}
+.aw{background:linear-gradient(135deg,#2b1a0d,#3a2010);border:1px solid #c0392b;}
+.ag{background:linear-gradient(135deg,#0d2b1a,#102b1a);border:1px solid var(--green);}
+.aico{font-size:19px;flex-shrink:0;}.atit{font-size:13px;font-weight:700;margin-bottom:2px;}
+.abod{font-size:12px;opacity:.8;}.amon{font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:4px;}
+/* Section */
+.sec{background:var(--bg2);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.seh{background:var(--bg3);padding:10px 15px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.seb{padding:13px;}
+.ur{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:5px;}
+.ur:last-child{margin-bottom:0;}
+.userial{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;}
+.uinf{font-size:10px;color:var(--dim);margin-top:2px;}
+/* Empty */
+.empty{text-align:center;padding:48px 20px;color:var(--dim);background:var(--bg2);border:1px solid var(--border);border-radius:11px;}
+.eico{font-size:40px;margin-bottom:13px;opacity:.3;}.etit{font-size:16px;font-weight:600;margin-bottom:6px;}
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}.hpills{display:none!important}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">YCT</div>
+  <div><div class="ht">Stock Checker</div><div class="hs">Yanmar / YTAgri — ระบบตรวจสอบสต๊อก</div></div>
+  <div class="hpills" id="hpills">
+    <div class="pill"><span class="dot dg"></span><span id="hIn">0</span> มีสต๊อก</div>
+    <div class="pill"><span class="dot dr2"></span><span id="hSold">0</span> ขายแล้ว</div>
+    <div class="pill"><span class="dot do"></span><span id="hNf">0</span> ไม่พบ</div>
+    <div class="pill"><span class="dot db"></span><span id="hW">—</span> เขียน</div>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="lp">
+
+  <!-- GAS (primary data source) -->
+  <div class="card">
+    <div class="ch">⚙️ Apps Script Web App</div>
+    <div class="cb">
+      <span class="lbl">Web App URL (จาก Deploy)</span>
+      <input class="inp" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="onGasInp()">
+      <div class="ib nf" id="gasHint" style="display:block">💡 ติดตั้ง code.gs → Deploy → Web app → copy URL มาวาง<br>ระบบจะดึงข้อมูลทุก Sheet จาก GAS โดยตรง</div>
+      <button class="btn bb" id="btnTest" onclick="testGas()" disabled>🔌 โหลดข้อมูลจาก GAS</button>
+      <div class="ib" id="gasBox"></div>
+      <!-- Sheet filter tabs (populated after load) -->
+      <div id="sheetTabWrap" style="display:none;margin-top:10px">
+        <span class="lbl">กรอง Sheet (เลือกที่ต้องการตรวจ)</span>
+        <div class="tabs" id="sheetTabs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="ch">📷 อัปโหลดรูปถ่าย</div>
+    <div class="cb">
+      <div class="upz" id="dz" ondragover="onDO(event)" ondrop="onDrop(event)" ondragleave="onDL(event)">
+        <input type="file" id="fi" multiple accept="image/*" onchange="handleFiles(this.files)">
+        <div class="uico">🖼️</div>
+        <div class="utx">คลิกหรือลากรูปมาวาง</div>
+        <div class="usb">JPG, PNG — หลายรูปพร้อมกัน</div>
+      </div>
+      <div class="q" id="q"></div>
+      <div class="pw" id="pw"><div class="pb" id="pb" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <button class="btnrun" id="btnRun" onclick="runAll()" disabled>
+    <span id="runIco">🔍</span><span id="runTxt">อ่าน Serial & จับคู่ Stock</span>
+  </button>
+  <button class="btnwr" id="btnWr" onclick="writeBack()" disabled>
+    <span id="wIco">📝</span><span id="wTxt">เขียนผลกลับ Google Sheet</span>
+  </button>
+  <button class="btn bs" id="btnClr" onclick="clearAll()" style="display:none">🗑️ ล้างทั้งหมด</button>
+
+</div><!-- /lp -->
+
+<div class="rp">
+  <div id="alrtUM" style="display:none"></div>
+  <div id="alrtOK" style="display:none"></div>
+
+  <div id="sumbar" class="sumbar" style="display:none">
+    <div class="si"><div class="sc" id="sAll">0</div><div class="sl">รูปทั้งหมด</div></div>
+    <div class="dv1"></div>
+    <div class="si"><div class="sc" id="sIn" style="color:var(--green)">0</div><div class="sl">✅ มีสต๊อก</div></div>
+    <div class="si"><div class="sc" id="sSold" style="color:var(--red-light)">0</div><div class="sl">🔴 ขายแล้ว</div></div>
+    <div class="si"><div class="sc" id="sNf" style="color:var(--orange)">0</div><div class="sl">⚠️ ไม่พบ</div></div>
+    <div class="si"><div class="sc" id="sErr" style="color:#555">0</div><div class="sl">❌ อ่านไม่ได้</div></div>
+    <div class="dv1"></div>
+    <div class="si"><div class="sc" id="sWr" style="color:var(--blue)">—</div><div class="sl">📝 เขียนแล้ว</div></div>
+  </div>
+
+  <div id="ftbs" class="ftbs" style="display:none">
+    <button class="ft on" onclick="flt('all',this)">ทั้งหมด <span class="b" id="bAll">0</span></button>
+    <button class="ft" onclick="flt('instock',this)">✅ มีสต๊อก <span class="b" id="bIn">0</span></button>
+    <button class="ft" onclick="flt('sold',this)">🔴 ขายแล้ว <span class="b" id="bSold">0</span></button>
+    <button class="ft" onclick="flt('notfound',this)">⚠️ ไม่พบ <span class="b" id="bNf">0</span></button>
+    <button class="ft" onclick="flt('error',this)">❌ ข้อผิดพลาด <span class="b" id="bErr">0</span></button>
+  </div>
+
+  <div id="grid" class="grid">
+    <div class="empty">
+      <div class="eico">🚜</div>
+      <div class="etit">ยังไม่มีผลลัพธ์</div>
+      <div style="font-size:12px">โหลดข้อมูลจาก GAS → อัปโหลดรูป → กดวิเคราะห์</div>
+    </div>
+  </div>
+
+  <div id="secUM" class="sec" style="display:none">
+    <div class="seh" id="secUMH">📋 รายการใน Sheet ที่ยังไม่มีรูปถ่าย</div>
+    <div class="seb" id="secUMB"></div>
+  </div>
+</div>
+</div><!-- /wrap -->
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let stockData = [];        // [{sheetName, row, carNo, machineNo, customer, checkDate, checkStatus}]
+let allSheets = [];        // unique sheet names
+let activeSheets = new Set(); // sheets ที่เลือก
+let imgs = [];             // uploaded images
+let results = [];          // match results
+let curFilter = 'all';
+let gasUrl = '';
+let writtenCnt = 0;
+
+// ============================================================
+// GAS — LOAD STOCK DATA
+// ============================================================
+function onGasInp() {
+  gasUrl = document.getElementById('gasUrl').value.trim();
+  document.getElementById('btnTest').disabled = !gasUrl;
+  document.getElementById('btnWr').disabled = !gasUrl || !results.some(r => r.match);
+}
+
+async function testGas() {
+  gasUrl = document.getElementById('gasUrl').value.trim();
+  if (!gasUrl) return;
+  document.getElementById('btnTest').disabled = true;
+  showIB('gasBox', 'ld', '⏳ กำลังโหลดข้อมูลทุก Sheet จาก GAS...');
+  try {
+    const r = await fetch(gasUrl);
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'GAS ตอบ error');
+
+    stockData = d.data || [];
+
+    // สร้าง sheet tabs
+    allSheets = [...new Set(stockData.map(s => s.sheetName))];
+    activeSheets = new Set(allSheets);
+    renderSheetTabs();
+
+    showIB('gasBox', 'ok', `✅ โหลดสำเร็จ — ${stockData.length} รายการ จาก ${allSheets.length} Sheet: ${allSheets.join(', ')}`);
+    checkRun();
+  } catch(e) {
+    showIB('gasBox', 'er', `❌ ${e.message}\nตรวจสอบ: URL ถูกต้อง / Deploy เป็น "Anyone" แล้วหรือยัง?`);
+  }
+  document.getElementById('btnTest').disabled = false;
+}
+
+function renderSheetTabs() {
+  const wrap = document.getElementById('sheetTabWrap');
+  const tabs = document.getElementById('sheetTabs');
+  if (!allSheets.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  tabs.innerHTML = allSheets.map(n => `
+    <button class="tab on" onclick="toggleSheet(this,'${n}')">${n}</button>
+  `).join('');
+}
+
+function toggleSheet(btn, name) {
+  if (activeSheets.has(name)) {
+    if (activeSheets.size === 1) return; // ต้องเลือกอย่างน้อย 1
+    activeSheets.delete(name);
+    btn.classList.remove('on');
+  } else {
+    activeSheets.add(name);
+    btn.classList.add('on');
+  }
+}
+
+function getActiveStock() {
+  return stockData.filter(s => activeSheets.has(s.sheetName));
+}
+
+// ============================================================
+// FILE HANDLING
+// ============================================================
+function onDO(e) { e.preventDefault(); document.getElementById('dz').classList.add('dov'); }
+function onDL(e) { document.getElementById('dz').classList.remove('dov'); }
+function onDrop(e) { e.preventDefault(); document.getElementById('dz').classList.remove('dov'); handleFiles(e.dataTransfer.files); }
+
+function handleFiles(files) {
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) continue;
+    if (imgs.find(x => x.file.name === f.name && x.file.size === f.size)) continue;
+    imgs.push({ file: f, preview: URL.createObjectURL(f), serial: null, model: null, status: 'waiting' });
+  }
+  renderQ(); checkRun();
+}
+
+function renderQ() {
+  const q = document.getElementById('q');
+  q.innerHTML = imgs.map((img, i) => `
+    <div class="qi">
+      <img class="qth" src="${img.preview}">
+      <div class="qn">
+        <div class="qfn">${img.file.name}</div>
+        <div class="qser" id="qs${i}">${img.serial || '—'}</div>
+      </div>
+      <span class="qst ${stcls(img.status)}" id="qst${i}">${stlbl(img.status)}</span>
+    </div>`).join('');
+}
+function stcls(s) { return { waiting:'sw', reading:'sr', done:'sd', error:'se' }[s] || 'sw'; }
+function stlbl(s) { return { waiting:'รอ', reading:'กำลังอ่าน...', done:'อ่านแล้ว', error:'ผิดพลาด' }[s] || s; }
+function checkRun() { document.getElementById('btnRun').disabled = !(stockData.length > 0 && imgs.length > 0); }
+
+// ============================================================
+// AI SERIAL READING
+// ============================================================
+async function readSerial(file) {
+  const b64 = await toB64(file);
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514', max_tokens: 300,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: b64 } },
+        { type: 'text', text: `Read the Yanmar equipment nameplate in this photo.
+Extract exactly:
+- MODEL: model name (e.g. YM358R, EF393T)
+- SERIAL: full MODEL SERIAL NO. string (e.g. YMJS0057CPLK50488)
+- SUFFIX: trailing numeric digits from serial (e.g. 50488)
+
+Return ONLY JSON, no markdown:
+{"model":"...","serial":"...","suffix":"..."}
+Use null if unreadable.` }
+      ]}]
+    })
+  });
+  const d = await res.json();
+  const txt = d.content?.find(c => c.type === 'text')?.text || '';
+  return JSON.parse(txt.replace(/```json|```/g, '').trim());
+}
+
+function toB64(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('read failed'));
+    r.readAsDataURL(f);
+  });
+}
+
+// ============================================================
+// MATCHING — against active sheets only
+// ============================================================
+function matchStock(suffix, serial) {
+  const pool = getActiveStock();
+  const sfx = (suffix || '').trim();
+  const num = sfx.replace(/[^0-9]/g, '');
+
+  // 1. exact suffix match
+  for (const s of pool) {
+    const m = s.machineNo.trim();
+    if (sfx && (m.endsWith(sfx) || m === sfx)) return s;
+  }
+  // 2. trailing numeric match
+  if (num.length >= 3) {
+    for (const s of pool) {
+      if (s.machineNo.replace(/[^0-9]/g, '').endsWith(num)) return s;
+    }
+  }
+  // 3. fallback: last 5 digits of full serial
+  if (serial) {
+    const sn = serial.replace(/[^0-9]/g, '').slice(-5);
+    if (sn.length >= 4)
+      for (const s of pool)
+        if (s.machineNo.replace(/[^0-9]/g, '').endsWith(sn)) return s;
+  }
+  return null;
+}
+
+// ============================================================
+// MAIN RUN
+// ============================================================
+async function runAll() {
+  document.getElementById('btnRun').disabled = true;
+  document.getElementById('runTxt').textContent = 'กำลังประมวลผล...';
+  document.getElementById('pw').style.display = 'block';
+  results = []; writtenCnt = 0;
+  document.getElementById('alrtOK').style.display = 'none';
+
+  for (let i = 0; i < imgs.length; i++) {
+    const img = imgs[i];
+    img.status = 'reading'; upQ(i);
+    document.getElementById('pb').style.width = `${Math.round(i / imgs.length * 100)}%`;
+    try {
+      const ocr = await readSerial(img.file);
+      img.serial = ocr.serial || ocr.suffix || '—';
+      img.model = ocr.model || '—';
+      img.status = 'done';
+      const m = matchStock(ocr.suffix, ocr.serial);
+      const status = !m ? 'notfound' : (m.customer && m.customer.length > 0 ? 'sold' : 'instock');
+      results.push({ img, ocr, match: m, status, written: false });
+    } catch(e) {
+      img.status = 'error';
+      results.push({ img, ocr: null, match: null, status: 'error', errMsg: e.message, written: false });
+    }
+    upQ(i);
+  }
+
+  document.getElementById('pb').style.width = '100%';
+  setTimeout(() => document.getElementById('pw').style.display = 'none', 700);
+
+  renderResults();
+  document.getElementById('btnRun').disabled = false;
+  document.getElementById('runIco').textContent = '🔄';
+  document.getElementById('runTxt').textContent = 'วิเคราะห์อีกครั้ง';
+  document.getElementById('btnClr').style.display = 'block';
+  document.getElementById('btnWr').disabled = !gasUrl || !results.some(r => r.match);
+}
+
+function upQ(i) {
+  const img = imgs[i];
+  const s = document.getElementById(`qs${i}`), st = document.getElementById(`qst${i}`);
+  if (s) s.textContent = img.serial || '—';
+  if (st) { st.textContent = stlbl(img.status); st.className = `qst ${stcls(img.status)}`; }
+}
+
+// ============================================================
+// WRITE BACK TO SHEET via GAS
+// ============================================================
+async function writeBack() {
+  gasUrl = document.getElementById('gasUrl').value.trim();
+  if (!gasUrl) { alert('กรุณาวาง Apps Script URL ก่อน'); return; }
+  if (!results.some(r => r.match)) { alert('ไม่มีรายการที่จับคู่ได้ — ไม่มีอะไรเขียน'); return; }
+
+  document.getElementById('btnWr').disabled = true;
+  document.getElementById('wTxt').textContent = 'กำลังเขียน...';
+  document.getElementById('wIco').textContent = '⏳';
+
+  const payload = results.filter(r => r.match).map(r => ({
+    sheetName: r.match.sheetName,
+    row: r.match.row,
+    status: r.status,
+    serial: r.ocr?.serial || '',
+    model: r.ocr?.model || '',
+    checkDate: new Date().toLocaleDateString('th-TH'),
+  }));
+
+  try {
+    const resp = await fetch(gasUrl, {
+      method: 'POST',
+      // Apps Script ต้องการ text/plain สำหรับ no-cors CORS workaround
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ results: payload }),
+    });
+    const d = await resp.json();
+    if (!d.ok) throw new Error(d.error || 'GAS ตอบ error');
+
+    writtenCnt = d.written;
+    document.getElementById('sWr').textContent = writtenCnt;
+    document.getElementById('hW').textContent = `${writtenCnt} เขียน`;
+    results.filter(r => r.match).forEach(r => r.written = true);
+    renderGrid();
+
+    document.getElementById('alrtOK').style.display = 'block';
+    document.getElementById('alrtOK').innerHTML = `
+      <div class="alrt ag">
+        <span class="aico">✅</span>
+        <div>
+          <div class="atit" style="color:var(--green)">เขียนกลับ Sheet สำเร็จ ${d.written} รายการ</div>
+          <div class="abod">บันทึกวันที่ตรวจนับ + สถานะ + สีแถว ลงใน Sheet แล้ว${d.errors?.length ? ` (${d.errors.length} error)` : ''}</div>
+          ${d.errors?.length ? `<div class="amon" style="color:var(--orange)">${d.errors.join(' | ')}</div>` : ''}
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('alrtOK').style.display = 'block';
+    document.getElementById('alrtOK').innerHTML = `
+      <div class="alrt aw">
+        <span class="aico">❌</span>
+        <div><div class="atit" style="color:var(--red-light)">เขียนไม่สำเร็จ</div>
+        <div class="abod">${e.message}</div></div>
+      </div>`;
+  }
+
+  document.getElementById('btnWr').disabled = false;
+  document.getElementById('wTxt').textContent = 'เขียนผลกลับ Google Sheet';
+  document.getElementById('wIco').textContent = '📝';
+}
+
+// ============================================================
+// RENDER RESULTS
+// ============================================================
+function renderResults() {
+  const c = { all: results.length, instock: 0, sold: 0, notfound: 0, error: 0 };
+  results.forEach(r => { if (c[r.status] !== undefined) c[r.status]++; });
+
+  ['All','In','Sold','Nf','Err'].forEach((k, j) => {
+    document.getElementById('s' + k).textContent = [c.all, c.instock, c.sold, c.notfound, c.error][j];
+    if (document.getElementById('b' + k)) document.getElementById('b' + k).textContent = [c.all, c.instock, c.sold, c.notfound, c.error][j];
+  });
+  document.getElementById('hIn').textContent = c.instock;
+  document.getElementById('hSold').textContent = c.sold;
+  document.getElementById('hNf').textContent = c.notfound;
+  document.getElementById('hpills').style.display = 'flex';
+  document.getElementById('sumbar').style.display = 'flex';
+  document.getElementById('ftbs').style.display = 'flex';
+
+  // Unmatched alert
+  const nf = results.filter(r => r.status === 'notfound');
+  document.getElementById('alrtUM').style.display = nf.length ? 'block' : 'none';
+  if (nf.length) document.getElementById('alrtUM').innerHTML = `
+    <div class="alrt aw">
+      <span class="aico">⚠️</span>
+      <div><div class="atit" style="color:var(--red-light)">พบ ${nf.length} รายการที่ไม่มีใน Sheet Stock!</div>
+      <div class="abod">Serial เหล่านี้ไม่ตรงกับรายการใดใน Sheet ที่เลือก</div>
+      <div class="amon" style="color:var(--orange)">${nf.map(r => r.ocr?.serial || r.img.file.name).join(' | ')}</div>
+      </div></div>`;
+
+  renderGrid();
+  renderUM();
+}
+
+function renderGrid() {
+  const fil = curFilter === 'all' ? results : results.filter(r => r.status === curFilter);
+  const g = document.getElementById('grid');
+  if (!fil.length) {
+    g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="eico">🔍</div><div class="etit">ไม่มีรายการในกลุ่มนี้</div></div>`;
+    return;
+  }
+  g.innerHTML = fil.map((r, i) => cardH(r, i)).join('');
+}
+
+function cardH(r, i) {
+  const sm = {
+    instock: { l:'✅ มีสต๊อก', c:'ci', b:'rbi' },
+    sold:    { l:'🔴 ขายแล้ว', c:'cs', b:'rbs' },
+    notfound:{ l:'⚠️ ไม่พบ',   c:'cn', b:'rbn' },
+    error:   { l:'❌ อ่านไม่ได้', c:'ce', b:'rbe' },
+  };
+  const s = sm[r.status] || sm.error, m = r.match;
+  return `
+  <div class="rc ${s.c}" style="animation-delay:${i * .04}s">
+    <div class="rim">
+      <img src="${r.img.preview}" loading="lazy">
+      <span class="rbadge ${s.b}">${s.l}</span>
+      ${r.written ? '<span class="wm">✓</span>' : ''}
+    </div>
+    <div class="rbody">
+      <div class="rfn">${r.img.file.name}</div>
+      <div class="rser">${r.ocr?.serial || '—'}</div>
+      <div class="rmod">Model: ${r.ocr?.model || '—'}${m ? ` · ${m.sheetName}` : ''}</div>
+      <div class="rdet">
+        <div class="dr"><span class="dl">หมายเลขรถ</span><span class="dval r">${m?.carNo || '—'}</span></div>
+        <div class="dr"><span class="dl">หมายเลขเครื่อง</span><span class="dval">${m?.machineNo || r.ocr?.suffix || '—'}</span></div>
+        <div class="dr"><span class="dl">แถวที่</span><span class="dval">${m?.row ? `Row ${m.row}` : '—'}</span></div>
+        ${r.status === 'sold'   ? `<div class="dr"><span class="dl">ลูกค้า</span><span class="dval r">${m?.customer || ''}</span></div>` : ''}
+        ${r.status === 'instock'? `<div class="dr"><span class="dl">สถานะ</span><span class="dval g">ยังมีสต๊อก</span></div>` : ''}
+        ${r.status === 'notfound'?`<div class="dr"><span class="dl">Suffix</span><span class="dval o">${r.ocr?.suffix || '—'}</span></div>` : ''}
+        ${r.written ? `<div class="dr"><span class="dl">บันทึก</span><span class="dval b">✓ เขียนลง Sheet แล้ว</span></div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderUM() {
+  const matched = new Set(results.filter(r => r.match).map(r => r.match.machineNo));
+  const um = getActiveStock().filter(s => !s.customer && !matched.has(s.machineNo));
+  const sec = document.getElementById('secUM');
+  if (!um.length || !results.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  document.getElementById('secUMH').innerHTML = `📋 <span style="color:var(--orange)">รายการใน Sheet ที่ยังไม่มีรูปถ่าย — ยังไม่ได้ตรวจนับ (${um.length} คัน)</span>`;
+  document.getElementById('secUMB').innerHTML = um.map(s => `
+    <div class="ur">
+      <div>
+        <div class="userial">${s.machineNo}</div>
+        <div class="uinf">หมายเลขรถ: ${s.carNo || '—'} · แถว ${s.row} · ${s.sheetName}</div>
+      </div>
+      <span class="qst sw">ยังไม่ถ่าย</span>
+    </div>`).join('');
+}
+
+function flt(f, btn) {
+  curFilter = f;
+  document.querySelectorAll('.ft').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderGrid();
+}
+
+function showIB(id, cls, msg) {
+  const el = document.getElementById(id);
+  el.style.display = 'block'; el.className = `ib ${cls}`; el.textContent = msg;
+}
+
+function clearAll() {
+  imgs = []; results = []; writtenCnt = 0; curFilter = 'all';
+  document.getElementById('q').innerHTML = '';
+  document.getElementById('grid').innerHTML = `<div class="empty"><div class="eico">🚜</div><div class="etit">ยังไม่มีผลลัพธ์</div><div style="font-size:12px">โหลดข้อมูลจาก GAS → อัปโหลดรูป → กดวิเคราะห์</div></div>`;
+  ['sumbar','ftbs','alrtUM','alrtOK','secUM'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('btnClr').style.display = 'none';
+  document.getElementById('btnWr').disabled = true;
+  document.getElementById('hpills').style.display = 'none';
+  document.getElementById('runIco').textContent = '🔍';
+  document.getElementById('runTxt').textContent = 'อ่าน Serial & จับคู่ Stock';
+  checkRun();
+}
+</script>
+</body>
+</html>
